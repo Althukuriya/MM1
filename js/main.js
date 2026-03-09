@@ -1,4 +1,4 @@
-// js/main.js - COMPLETE WORKING VERSION
+// js/main.js - SIMPLE FIXED VERSION
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("🏠 Homepage loaded");
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("Loading vehicles for homepage...");
     await fetchVehiclesFromSheet();
     
-    // Then load featured vehicles (LAST 3 FROM SHEET)
+    // Then load featured vehicles (LATEST 3 AVAILABLE)
     loadFeaturedVehicles();
     
     // Load YouTube videos
@@ -107,44 +107,40 @@ function initHeroSlider() {
     }
 }
 
-// Load featured vehicles - SHOWS LAST 3 FROM SPREADSHEET
-async function loadFeaturedVehicles() {
+// ===== FIXED FEATURED VEHICLES - LATEST 3 AVAILABLE =====
+function loadFeaturedVehicles() {
     const grid = document.getElementById('featured-vehicles-grid');
     if (!grid) return;
     
-    // Show loading
-    grid.innerHTML = '<div class="loading-spinner"><i class="fas fa-spinner fa-spin"></i> Loading vehicles...</div>';
+    console.log("Loading featured vehicles...");
+    console.log("All vehicles:", window.allVehicles);
     
-    try {
-        // Get the LAST 3 vehicles from the spreadsheet (most recent entries)
-        // Using reverse() to get the newest ones first, then slice 3
-        const vehicles = window.allVehicles.slice().reverse().slice(0, 3);
-        
-        console.log("🏆 Featured vehicles (last 3 from sheet):", vehicles);
-        
-        if (vehicles.length === 0) {
-            grid.innerHTML = '<p class="no-vehicles">No featured vehicles available</p>';
-            return;
-        }
-        
-        grid.innerHTML = vehicles.map(vehicle => `
-            <div class="vehicle-card" onclick="openVehicleModal(${vehicle.id})">
-                <div class="vehicle-image">
-                    <img src="${vehicle.image}" alt="${vehicle.name}" loading="lazy">
-                    <span class="vehicle-badge ${vehicle.status.toLowerCase()}">${vehicle.status}</span>
-                </div>
-                <div class="vehicle-info">
-                    <h3 class="vehicle-name">${vehicle.name}</h3>
-                    <p class="vehicle-year">${vehicle.year} • ${vehicle.type}</p>
-                    <p class="vehicle-price">${formatPrice(vehicle.price)}</p>
-                </div>
-            </div>
-        `).join('');
-        
-    } catch (error) {
-        console.error("Error loading featured vehicles:", error);
-        grid.innerHTML = '<p class="error">Error loading vehicles</p>';
+    // Filter ONLY available vehicles
+    const availableVehicles = window.allVehicles.filter(v => v.status === "AVAILABLE");
+    console.log("Available vehicles:", availableVehicles);
+    
+    // Take last 3 available (most recent)
+    const featured = availableVehicles.slice(-3).reverse();
+    console.log("Featured vehicles (last 3 available):", featured);
+    
+    if (featured.length === 0) {
+        grid.innerHTML = '<p class="no-vehicles">No featured vehicles available</p>';
+        return;
     }
+    
+    grid.innerHTML = featured.map(vehicle => `
+        <div class="vehicle-card" onclick="openVehicleModal(${vehicle.id})">
+            <div class="vehicle-image">
+                <img src="${vehicle.image}" alt="${vehicle.name}" loading="lazy">
+                <span class="vehicle-badge available">AVAILABLE</span>
+            </div>
+            <div class="vehicle-info">
+                <h3 class="vehicle-name">${vehicle.name}</h3>
+                <p class="vehicle-year">${vehicle.year} • ${vehicle.type}</p>
+                <p class="vehicle-price">${formatPrice(vehicle.price)}</p>
+            </div>
+        </div>
+    `).join('');
 }
 
 // Load YouTube videos
