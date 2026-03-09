@@ -1,4 +1,4 @@
-// js/data.js - COMPLETE FIXED VERSION
+// js/data.js - COMPLETE WORKING VERSION
 
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE1pstK8BTamjt-LTSDJ40d6OdayNmT5NQp1Y4inx6pvMuBQ68at3tbkJDyy6NiqMfOZ1mB9AXE6_v/pub?gid=1146903494&single=true&output=csv";
 
@@ -86,6 +86,7 @@ async function fetchVehiclesFromSheet() {
             throw new Error("CSV data is too short");
         }
         
+        // Parse the CSV data
         const vehicles = parseCSV(csvText);
         
         if (vehicles.length > 0) {
@@ -105,7 +106,7 @@ async function fetchVehiclesFromSheet() {
     }
 }
 
-// Parse CSV to vehicle objects - USING YOUR COLUMN INDEX APPROACH
+// Parse CSV to vehicle objects
 function parseCSV(csvText) {
     const lines = csvText.split('\n').filter(line => line.trim() !== '');
     
@@ -179,7 +180,7 @@ function parseCSV(csvText) {
             };
             
             vehicles.push(vehicle);
-            console.log(`✅ Added vehicle: ${vehicle.name}`);
+            console.log(`✅ Added vehicle: ${vehicle.name} (${vehicle.status})`);
             
         } catch (err) {
             console.warn(`Error parsing row ${i}:`, err);
@@ -207,3 +208,6 @@ function getYouTubeVideosFromVehicles(vehicles = window.allVehicles) {
 function formatPrice(price) {
     return `₹${Number(price).toLocaleString('en-IN')}`;
 }
+
+// Auto-run when script loads
+console.log("📦 data.js loaded, ready to fetch vehicles");
