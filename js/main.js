@@ -1,4 +1,4 @@
-// js/main.js - SIMPLE FIXED VERSION
+// js/main.js - TAKES LAST 3 FROM VEHICLES PAGE
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("🏠 Homepage loaded");
@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.log("Loading vehicles for homepage...");
     await fetchVehiclesFromSheet();
     
-    // Then load featured vehicles (LATEST 3 AVAILABLE)
+    // Then load featured vehicles (LAST 3 AVAILABLE from vehicles page)
     loadFeaturedVehicles();
     
     // Load YouTube videos
@@ -107,21 +107,22 @@ function initHeroSlider() {
     }
 }
 
-// ===== FIXED FEATURED VEHICLES - LATEST 3 AVAILABLE =====
+// ===== FIXED FEATURED VEHICLES - LAST 3 AVAILABLE FROM VEHICLES PAGE =====
 function loadFeaturedVehicles() {
     const grid = document.getElementById('featured-vehicles-grid');
     if (!grid) return;
     
-    console.log("Loading featured vehicles...");
+    console.log("Loading featured vehicles from vehicles page data...");
     console.log("All vehicles:", window.allVehicles);
     
     // Filter ONLY available vehicles
     const availableVehicles = window.allVehicles.filter(v => v.status === "AVAILABLE");
     console.log("Available vehicles:", availableVehicles);
     
-    // Take last 3 available (most recent)
-    const featured = availableVehicles.slice(-3).reverse();
-    console.log("Featured vehicles (last 3 available):", featured);
+    // Take the LAST 3 available (most recent entries)
+    // This is exactly what shows on vehicles page
+    const featured = availableVehicles.slice(-3);
+    console.log("Featured vehicles (last 3 available from vehicles page):", featured);
     
     if (featured.length === 0) {
         grid.innerHTML = '<p class="no-vehicles">No featured vehicles available</p>';
