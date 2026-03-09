@@ -1,13 +1,11 @@
-// js/data.js
-// GOOGLE SHEETS CSV URL - MAKE SURE THIS IS CORRECT
-const GOOGLE_SHEETS_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmqHEH0b4l4JYMIEM0N6hnH55elmZMKtBie2cDRYGDb_YGMAe0d7ZKe18srlr23ReTJWYv_ECfTSMm/pub?output=csv";
+// js/data.js - COMPLETE FIXED VERSION
 
-// Store vehicles globally
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSE1pstK8BTamjt-LTSDJ40d6OdayNmT5NQp1Y4inx6pvMuBQ68at3tbkJDyy6NiqMfOZ1mB9AXE6_v/pub?gid=1146903494&single=true&output=csv";
+
+// Global vehicles array
 window.allVehicles = [];
 
-// ========== DEFINE FUNCTIONS FIRST ==========
-
-// Demo data
+// DEMO VEHICLES - FALLBACK DATA
 const DEMO_VEHICLES = [
     {
         id: 1,
@@ -15,184 +13,65 @@ const DEMO_VEHICLES = [
         type: "Car",
         year: 2022,
         price: 22000,
-        image: "https://placehold.co/600x400/0A1929/FFFFFF?text=Honda+Civic",
-        images: ["https://placehold.co/600x400/0A1929/FFFFFF?text=Honda+Civic+1"],
-        status: "AVAILABLE",
-        youtube: ""
+        image: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600",
+        images: [
+            "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600",
+            "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600",
+            "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600"
+        ],
+        youtube: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        status: "AVAILABLE"
     },
     {
         id: 2,
         name: "Yamaha R15 V4",
         type: "Bike",
         year: 2023,
-        price: 1800,
-        image: "https://placehold.co/600x400/1E88E5/FFFFFF?text=Yamaha+R15",
-        images: ["https://placehold.co/600x400/1E88E5/FFFFFF?text=Yamaha+R15+1"],
-        status: "AVAILABLE",
-        youtube: "https://youtu.be/JfYui0H1gRk"
+        price: 15000,
+        image: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600",
+        images: [
+            "https://images.unsplash.com/photo-1558981806-ec527fa84c39?w=600",
+            "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=600"
+        ],
+        youtube: "",
+        status: "AVAILABLE"
     },
     {
         id: 3,
-        name: "Toyota Fortuner",
+        name: "Toyota Camry 2022",
         type: "Car",
-        year: 2021,
-        price: 45000,
-        image: "https://placehold.co/600x400/FF6B35/FFFFFF?text=Toyota+Fortuner",
-        images: ["https://placehold.co/600x400/FF6B35/FFFFFF?text=Toyota+Fortuner+1"],
-        status: "AVAILABLE",
-        youtube: ""
+        year: 2022,
+        price: 28000,
+        image: "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600",
+        images: ["https://images.unsplash.com/photo-1621007947382-bb3c3994e3fb?w=600"],
+        youtube: "",
+        status: "SOLD"
     },
     {
         id: 4,
         name: "Royal Enfield Classic 350",
         type: "Bike",
         year: 2023,
-        price: 2200,
-        image: "https://placehold.co/600x400/4CAF50/FFFFFF?text=Royal+Enfield",
-        images: ["https://placehold.co/600x400/4CAF50/FFFFFF?text=Royal+Enfield+1"],
-        status: "AVAILABLE",
-        youtube: "https://youtu.be/JfYui0H1gRk"
+        price: 18000,
+        image: "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=600",
+        images: ["https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=600"],
+        youtube: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        status: "AVAILABLE"
     }
 ];
 
-// Parse a single CSV line handling quotes
-function parseCSVLine(line) {
-    const values = [];
-    let currentValue = '';
-    let insideQuotes = false;
-    
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        
-        if (char === '"' && !insideQuotes) {
-            insideQuotes = true;
-        } else if (char === '"' && insideQuotes) {
-            insideQuotes = false;
-        } else if (char === ',' && !insideQuotes) {
-            values.push(currentValue);
-            currentValue = '';
-        } else {
-            currentValue += char;
-        }
-    }
-    
-    values.push(currentValue); // Add last value
-    return values.map(v => v.trim());
-}
-
-// Get value by header name
-function getValueByHeader(values, headers, headerName) {
-    const index = headers.findIndex(h => 
-        h.toLowerCase().includes(headerName.toLowerCase()) || 
-        headerName.toLowerCase().includes(h.toLowerCase())
-    );
-    
-    if (index !== -1 && values[index] && values[index] !== '') {
-        return values[index].replace(/^"|"$/g, '').trim();
-    }
-    return '';
-}
-
-// Parse CSV to vehicle objects
-function parseCSV(csvText) {
-    console.log("Parsing CSV data...");
-    
-    // Split into lines and clean
-    const lines = csvText.split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0);
-    
-    if (lines.length < 2) {
-        console.log("CSV has no data rows");
-        return [];
-    }
-    
-    // Parse headers
-    const headerLine = lines[0];
-    const headers = parseCSVLine(headerLine).map(h => h.replace(/^"|"$/g, '').trim());
-    console.log("📋 CSV Headers:", headers);
-    
-    const vehicles = [];
-    
-    // Process each data row
-    for (let i = 1; i < lines.length; i++) {
-        try {
-            const values = parseCSVLine(lines[i]);
-            
-            // Get values
-            const name = getValueByHeader(values, headers, 'Vehicle Name');
-            const type = getValueByHeader(values, headers, 'Vehicle Type');
-            const yearStr = getValueByHeader(values, headers, 'Model Year');
-            const priceStr = getValueByHeader(values, headers, 'Price');
-            const status = getValueByHeader(values, headers, 'STATUS');
-            const youtube = getValueByHeader(values, headers, 'YouTube');
-            
-            // Get images
-            const images = [];
-            const img1 = getValueByHeader(values, headers, 'Image 1');
-            const img2 = getValueByHeader(values, headers, 'Image 2');
-            const img3 = getValueByHeader(values, headers, 'Image 3');
-            const img4 = getValueByHeader(values, headers, 'Image 4');
-            const img5 = getValueByHeader(values, headers, 'Image 5');
-            
-            if (img1 && img1.startsWith('http')) images.push(img1);
-            if (img2 && img2.startsWith('http')) images.push(img2);
-            if (img3 && img3.startsWith('http')) images.push(img3);
-            if (img4 && img4.startsWith('http')) images.push(img4);
-            if (img5 && img5.startsWith('http')) images.push(img5);
-            
-            // Parse year and price
-            const year = parseInt(yearStr) || 2023;
-            const price = parseFloat(priceStr) || 0;
-            
-            // Only add if we have valid data
-            if (name && name !== 'Vehicle Name' && price > 0) {
-                const vehicle = {
-                    id: i,
-                    name: name,
-                    type: type || 'Car',
-                    year: year,
-                    price: price,
-                    image: images.length > 0 ? images[0] : 'https://placehold.co/600x400/0A1929/FFFFFF?text=No+Image',
-                    images: images.length > 0 ? images : ['https://placehold.co/600x400/0A1929/FFFFFF?text=No+Image'],
-                    status: status ? status.toUpperCase() : 'AVAILABLE',
-                    youtube: youtube || '',
-                };
-                
-                vehicles.push(vehicle);
-                console.log(`✅ Added: ${vehicle.name}`);
-            }
-        } catch (err) {
-            console.warn(`Error parsing row ${i}:`, err);
-        }
-    }
-    
-    console.log(`📊 Total vehicles parsed: ${vehicles.length}`);
-    return vehicles;
-}
-
-// Load demo data
-function loadDemoData() {
-    console.log("📦 Loading demo data");
-    window.allVehicles = DEMO_VEHICLES;
-    return DEMO_VEHICLES;
-}
-
 // Main function to fetch vehicles from Google Sheets
 async function fetchVehiclesFromSheet() {
-    console.log("🔄 Fetching data from Google Sheets...");
-    
     try {
+        console.log("Fetching data from Google Sheets...");
+        
         // Add cache busting
-        const url = GOOGLE_SHEETS_CSV_URL + '&_=' + new Date().getTime();
+        const url = SHEET_URL + '&_=' + new Date().getTime();
         
         const response = await fetch(url, {
             method: 'GET',
             mode: 'cors',
-            cache: 'no-cache',
-            headers: {
-                'Content-Type': 'text/csv',
-            }
+            cache: 'no-cache'
         });
         
         if (!response.ok) {
@@ -200,12 +79,11 @@ async function fetchVehiclesFromSheet() {
         }
         
         const csvText = await response.text();
-        console.log("✅ CSV data received, length:", csvText.length);
+        console.log("CSV data received, length:", csvText.length);
         console.log("First 200 chars:", csvText.substring(0, 200));
         
-        if (csvText.length < 50) {
-            console.warn("⚠️ CSV data too short, might be empty");
-            return loadDemoData();
+        if (csvText.length < 10) {
+            throw new Error("CSV data is too short");
         }
         
         const vehicles = parseCSV(csvText);
@@ -215,21 +93,108 @@ async function fetchVehiclesFromSheet() {
             window.allVehicles = vehicles;
             return vehicles;
         } else {
-            console.log("⚠️ No vehicles found in sheet, loading demo data");
-            return loadDemoData();
+            console.log("No vehicles found in sheet, using demo data");
+            window.allVehicles = DEMO_VEHICLES;
+            return DEMO_VEHICLES;
         }
     } catch (error) {
         console.error("❌ Error fetching from Google Sheets:", error);
-        console.log("⚠️ Falling back to demo data");
-        return loadDemoData();
+        console.log("Using demo data instead");
+        window.allVehicles = DEMO_VEHICLES;
+        return DEMO_VEHICLES;
     }
 }
 
+// Parse CSV to vehicle objects - USING YOUR COLUMN INDEX APPROACH
+function parseCSV(csvText) {
+    const lines = csvText.split('\n').filter(line => line.trim() !== '');
+    
+    if (lines.length < 2) {
+        console.log("CSV has no data rows");
+        return [];
+    }
+    
+    const vehicles = [];
+    
+    // Skip header row (index 0), start from row 1
+    for (let i = 1; i < lines.length; i++) {
+        try {
+            // Parse CSV line properly (handles quotes)
+            const values = [];
+            let currentValue = '';
+            let insideQuotes = false;
+            
+            for (let char of lines[i]) {
+                if (char === '"' && !insideQuotes) {
+                    insideQuotes = true;
+                } else if (char === '"' && insideQuotes) {
+                    insideQuotes = false;
+                } else if (char === ',' && !insideQuotes) {
+                    values.push(currentValue);
+                    currentValue = '';
+                } else {
+                    currentValue += char;
+                }
+            }
+            values.push(currentValue); // Add last value
+            
+            // Clean up values (remove quotes)
+            const cleanValues = values.map(v => v.replace(/^"|"$/g, '').trim());
+            
+            // Check if we have a vehicle name (column 1)
+            if (!cleanValues[1] || cleanValues[1] === '') {
+                continue; // Skip empty rows
+            }
+            
+            // Get status from column 11 (or default to AVAILABLE)
+            const status = (cleanValues[11] || "AVAILABLE").trim().toUpperCase();
+            
+            // Skip if HIDE
+            if (status === "HIDE") {
+                continue;
+            }
+            
+            // Collect images (columns 5-9)
+            const images = [];
+            for (let j = 5; j <= 9; j++) {
+                if (cleanValues[j] && cleanValues[j].startsWith('http')) {
+                    images.push(cleanValues[j]);
+                }
+            }
+            
+            // Parse year and price
+            const year = parseInt(cleanValues[3]) || 2024;
+            const price = parseFloat(cleanValues[4]) || 0;
+            
+            const vehicle = {
+                id: i,
+                name: cleanValues[1] || "Unknown Vehicle",
+                type: cleanValues[2] || "Car",
+                year: year,
+                price: price,
+                image: images.length > 0 ? images[0] : "https://placehold.co/600x400/0A1929/FFFFFF?text=No+Image",
+                images: images.length > 0 ? images : ["https://placehold.co/600x400/0A1929/FFFFFF?text=No+Image"],
+                youtube: cleanValues[10] || "",
+                status: status
+            };
+            
+            vehicles.push(vehicle);
+            console.log(`✅ Added vehicle: ${vehicle.name}`);
+            
+        } catch (err) {
+            console.warn(`Error parsing row ${i}:`, err);
+        }
+    }
+    
+    console.log(`📊 Parsed ${vehicles.length} vehicles from CSV`);
+    return vehicles;
+}
+
 // Get YouTube videos from vehicles
-function getYouTubeVideosFromVehicles(vehicles) {
+function getYouTubeVideosFromVehicles(vehicles = window.allVehicles) {
     return vehicles
         .filter(v => v.youtube && v.youtube.trim() !== '')
-        .slice(0, 6)
+        .slice(0, 3)
         .map(v => ({
             id: v.id,
             title: v.name,
@@ -238,13 +203,7 @@ function getYouTubeVideosFromVehicles(vehicles) {
         }));
 }
 
-// Format price
+// Format price in Rupees
 function formatPrice(price) {
-    return `₹${price.toLocaleString('en-IN')}`;
+    return `₹${Number(price).toLocaleString('en-IN')}`;
 }
-
-// Auto-fetch when script loads
-document.addEventListener('DOMContentLoaded', function() {
-    console.log("📊 data.js loaded, fetching vehicles...");
-    fetchVehiclesFromSheet();
-});
